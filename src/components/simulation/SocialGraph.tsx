@@ -45,6 +45,11 @@ export default function SocialGraph() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
 
+  // 计时器状态
+  const [elapsedTime, setElapsedTime] = useState(0); // 已经过的时间（毫秒）
+  const startTimeRef = useRef<number | null>(null); // 开始时间戳
+  const pausedTimeRef = useRef(0); // 暂停时已累积的时间
+
   // Path 模式：选择两点
   const [pathStart, setPathStart] = useState<string | null>(null);
   const [pathEnd, setPathEnd] = useState<string | null>(null);
@@ -210,6 +215,56 @@ export default function SocialGraph() {
     setSelectedId(null);
     setSelectedAgent(null);
     setMode('none');
+    
+    // 重置计时器
+    setElapsedTime(0);
+    startTimeRef.current = Date.now();
+    pausedTimeRef.current = 0;
+  };
+
+  // 计时器效果
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+    
+    if (running) {
+      // 如果正在运行，开始或继续计时
+      if (startTimeRef.current === null) {
+        startTimeRef.current = Date.now();
+      } else {
+        // 从暂停状态恢复，调整开始时间
+        startTimeRef.current = Date.now() - pausedTimeRef.current;
+        pausedTimeRef.current = 0;
+      }
+      
+      intervalId = setInterval(() => {
+        if (startTimeRef.current !== null) {
+          setElapsedTime(Date.now() - startTimeRef.current);
+        }
+      }, 100); // 每100ms更新一次
+    } else {
+      // 如果暂停，记录已累积的时间
+      if (startTimeRef.current !== null) {
+        pausedTimeRef.current = Date.now() - startTimeRef.current;
+        startTimeRef.current = null;
+      }
+    }
+    
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [running]);
+
+  // 格式化时间显示
+  const formatTime = (ms: number): string => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
   // 更新引擎参数
@@ -409,6 +464,20 @@ export default function SocialGraph() {
           {/* 运行控制 */}
           <div className="bg-white rounded-xl border border-[#EAECF0] shadow-[0_1px_2px_rgba(16,24,40,0.05)] p-4 space-y-3">
             <div className="text-[#344054] font-medium text-sm">运行控制</div>
+            
+            {/* 时间显示 */}
+            <div className="bg-gradient-to-br from-[#F0F9FF] to-[#E0F2FE] rounded-lg border border-[#BAE6FD] p-3">
+              <div className="text-[#0EA5E9] text-xs mb-1">⏱ 运行时长</div>
+              <div className="flex items-baseline gap-2">
+                <div className="text-3xl font-bold text-[#0284C7] font-mono">
+                  {formatTime(elapsedTime)}
+                </div>
+                <div className="text-xs text-[#475467]">
+                  {running ? '🟢 运行中' : '🟡 已暂停'}
+                </div>
+              </div>
+            </div>
+            
             <div className="flex gap-2">
               <button
                 className={`flex-1 text-sm font-semibold py-2.5 px-4 rounded-lg shadow-sm transition-all duration-200 ${
