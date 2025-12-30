@@ -63,6 +63,15 @@ export default function SocialGraph() {
   const [topMatches, setTopMatches] = useState<{ id: string; score: number }[]>([]);
   const [topN, setTopN] = useState(8);
   const [nearRadius, setNearRadius] = useState(150);
+  
+  // 创建排名映射：节点ID -> 排名
+  const matchRankMap = useMemo(() => {
+    const map = new Map<string, number>();
+    topMatches.forEach((match, index) => {
+      map.set(match.id, index + 1);
+    });
+    return map;
+  }, [topMatches]);
 
   // 统计信息
   const [stats, setStats] = useState({ nodeCount: 0, edgeCount: 0, componentCount: 0 });
@@ -384,6 +393,7 @@ export default function SocialGraph() {
       const isIndirect = indirectSet.has(a.id);
       const isMatch = matchSet.has(a.id);
       const isOnPath = pathSet.has(a.id);
+      const matchRank = matchRankMap.get(a.id);
 
       let r = 8 * dpr;  // 默认半径从6增大到8
       if (isSelected) r = 12 * dpr;  // 选中从10增大到12
@@ -410,6 +420,18 @@ export default function SocialGraph() {
         ctx.restore();
       }
 
+      // 绘制 TopK 匹配的金色虚线外圈
+      if (matchRank && !isSelected) {
+        ctx.save();
+        ctx.setLineDash([4 * dpr, 4 * dpr]);
+        ctx.strokeStyle = '#F59E0B';
+        ctx.lineWidth = 2 * dpr;
+        ctx.beginPath();
+        ctx.arc(a.position.x, a.position.y, r + 4 * dpr, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
       ctx.beginPath();
       ctx.fillStyle = fill;
       ctx.arc(a.position.x, a.position.y, r, 0, Math.PI * 2);
@@ -419,6 +441,17 @@ export default function SocialGraph() {
       ctx.lineWidth = 2 * dpr;
       ctx.strokeStyle = 'rgba(255,255,255,0.95)';
       ctx.stroke();
+
+      // 绘制 TopK 匹配的排名数字
+      if (matchRank && !isSelected) {
+        ctx.save();
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = `bold ${Math.max(14 * dpr, 16)}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(matchRank.toString(), a.position.x, a.position.y);
+        ctx.restore();
+      }
     });
   }
 
