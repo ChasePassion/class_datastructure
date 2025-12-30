@@ -711,9 +711,55 @@ export default function SocialGraph() {
               >
                 匹配推荐
               </button>
+              
+              {/* 匹配结果列表 */}
               {topMatches.length > 0 && (
-                <div className="bg-[#EFF6FF] border border-[#BFDBFE] rounded-lg p-2.5 text-xs text-[#1D4ED8]">
-                  找到 {topMatches.length} 个匹配
+                <div className="mt-3 space-y-2">
+                  <div className="text-[#344054] text-xs font-medium">匹配结果（按分数排序）</div>
+                  <div className="max-h-64 overflow-y-auto space-y-1.5">
+                    {topMatches.map((match, index) => {
+                      const agent = engineRef.current?.getAgent(match.id);
+                      if (!agent) return null;
+                      
+                      return (
+                        <div
+                          key={match.id}
+                          className="bg-white border border-[#EAECF0] rounded-lg p-2.5 hover:border-[#155EEF] transition-colors cursor-pointer"
+                          onClick={() => {
+                            setSelectedId(match.id);
+                            setSelectedAgent(agent);
+                          }}
+                        >
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[#667085] text-xs font-medium">#{index + 1}</span>
+                              <span className="text-[#101828] text-xs font-medium">{agent.name}</span>
+                            </div>
+                            <div className="text-[#155EEF] text-xs font-mono font-semibold">
+                              {match.score.toFixed(2)}
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-1.5 text-[10px] text-[#475467]">
+                            <div>年龄: {agent.age}岁</div>
+                            <div>性别: {agent.gender === 'Male' ? '男' : '女'}</div>
+                          </div>
+                          <div className="flex flex-wrap gap-1 mt-1.5">
+                            {['技术', '艺术', '运动', '政治', '金融', '音乐', '电影', '游戏', '健身', '旅行', '美食', '阅读'].map((tag, i) => (
+                              agent.interests[i] === 1 && (
+                                <span
+                                  key={i}
+                                  className="px-1.5 py-0.5 rounded text-[10px] text-white"
+                                  style={{ backgroundColor: INTEREST_COLORS[i] }}
+                                >
+                                  {tag}
+                                </span>
+                              )
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
