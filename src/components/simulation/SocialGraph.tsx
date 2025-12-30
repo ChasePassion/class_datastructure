@@ -79,11 +79,11 @@ export default function SocialGraph() {
 
   // 可调节参数
   const [agentCount, setAgentCount] = useState(80);
-  const [senseRadius, setSenseRadius] = useState(150);
-  const [matchRate, setMatchRate] = useState(2.5);
-  const [connectOn, setConnectOn] = useState(0.20);
-  const [friendAttract, setFriendAttract] = useState(35);
-  const [vMax, setVMax] = useState(120);
+  const [senseRadius, setSenseRadius] = useState(120);
+  const [matchRate, setMatchRate] = useState(0.5);
+  const [connectOn, setConnectOn] = useState(0.8);
+  const [friendAttract, setFriendAttract] = useState(15);
+  const [vMax, setVMax] = useState(140);
 
   // 帮助集合查询
   const directSet = useMemo(() => new Set(directIds), [directIds]);

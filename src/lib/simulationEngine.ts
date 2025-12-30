@@ -31,7 +31,7 @@ export class SimulationEngine {
     senseRadius: 150,
 
     // 好感度
-    forgetRate: 0.01, // λ：越大遗忘越快（向0回归）
+    forgetRate: 0.05, // λ：越大遗忘越快（向0回归）
     matchRate: 2, // η：匹配推动强度
     crowdRate: 0.6, // γ：拥挤惩罚强度
     personalSpace: 20, // 小于此距离会产生"烦"惩罚
@@ -380,11 +380,11 @@ export class SimulationEngine {
         // 2) crowd 0..1
         const crowd =
           d < p.personalSpace
-            ? clamp((p.personalSpace - d) / p.personalSpace, 0, 1)
+            ? clamp((p.personalSpace - d) / p.personalSpace, 0, 2)
             : 0;
 
         // 3) signedMatch: 让正向匹配更容易（基准点从0.5降到0.3）
-        const signedMatch = (m - 0.3) * 2;
+        const signedMatch = (m - 0.5) * 2;
 
         // 4) 取旧值
         const old = ai.affinity.get(aj.id) ?? 0;
