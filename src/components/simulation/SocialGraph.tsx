@@ -13,7 +13,7 @@ const INTEREST_COLORS = [
   '#A855F7', // Art - Purple
   '#22C55E', // Sports - Green
   '#EF4444', // Politics - Red
-  '#F59E0B', // Finance - Amber
+  '#101828', // Finance - Black（选中色保留黄色）
   '#EC4899', // Music - Pink
   '#06B6D4', // Movies - Cyan
   '#6366F1', // Gaming - Indigo
