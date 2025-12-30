@@ -398,10 +398,10 @@ export default function SocialGraph() {
       const isOnPath = pathSet.has(a.id);
       const matchRank = matchRankMap.get(a.id);
 
-      let r = 8 * dpr;  // 默认半径从6增大到8
-      if (isSelected) r = 12 * dpr;  // 选中从10增大到12
-      else if (isMatch || isDirect) r = 10 * dpr;  // 高亮从8增大到10
-      else if (isOnPath) r = 10 * dpr;
+      let r = 10 * dpr;  // 默认半径从6增大到8
+      if (isSelected) r = 14 * dpr;  // 选中从10增大到12
+      else if (isMatch || isDirect) r = 12 * dpr;  // 高亮从8增大到10
+      else if (isOnPath) r = 12 * dpr;
 
       // 确定填充色
       let fill = getAgentColor(a.interests);
