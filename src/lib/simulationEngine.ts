@@ -17,6 +17,7 @@ import {
 type ContactSets = {
   directIds: string[];
   indirectIds: string[];
+  stepMap: Map<string, number>; // 节点ID -> 步数
 };
 
 export class SimulationEngine {
@@ -145,30 +146,49 @@ export class SimulationEngine {
   // ====== 实验功能2：基于"选中Agent"的 Direct/Indirect ======
   getContactSets(agentId: string, radius: number): ContactSets {
     const a = this.getAgent(agentId);
-    if (!a) return { directIds: [], indirectIds: [] };
+    if (!a) return { directIds: [], indirectIds: [], stepMap: new Map() };
 
     const r = radius;
+    const stepMap = new Map<string, number>();
+
+    // BFS 计算步数
+    const visited = new Set<string>();
+    const queue: { id: string; step: number }[] = [{ id: agentId, step: 0 }];
+    visited.add(agentId);
+
     const direct: string[] = [];
-    for (const fid of a.connections) {
-      const f = this.getAgent(fid);
-      if (!f) continue;
-      if (dist(a.position, f.position) <= r) direct.push(fid);
-    }
+    const indirect: string[] = [];
 
-    const directSet = new Set(direct);
-    const indirectSet = new Set<string>();
+    while (queue.length > 0) {
+      const { id: currentId, step } = queue.shift()!;
 
-    for (const did of direct) {
-      const dAgent = this.getAgent(did);
-      if (!dAgent) continue;
-      for (const x of dAgent.connections) {
-        if (x === agentId) continue;
-        if (directSet.has(x)) continue;
-        indirectSet.add(x);
+      if (step > 0) {
+        const agent = this.getAgent(currentId);
+        if (agent && dist(a.position, agent.position) <= r) {
+          if (step === 1) {
+            direct.push(currentId);
+          } else {
+            indirect.push(currentId);
+          }
+          stepMap.set(currentId, step);
+        }
+      }
+
+      // 只搜索到第3步
+      if (step < 3) {
+        const currentAgent = this.getAgent(currentId);
+        if (!currentAgent) continue;
+
+        for (const neighborId of currentAgent.connections) {
+          if (!visited.has(neighborId)) {
+            visited.add(neighborId);
+            queue.push({ id: neighborId, step: step + 1 });
+          }
+        }
       }
     }
 
-    return { directIds: direct, indirectIds: Array.from(indirectSet) };
+    return { directIds: direct, indirectIds: indirect, stepMap };
   }
 
   // ====== 实验功能3：基于"选中Agent"的 TopN 匹配 ======

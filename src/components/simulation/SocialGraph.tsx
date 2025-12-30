@@ -58,6 +58,7 @@ export default function SocialGraph() {
   // 功能2：direct/indirect 高亮
   const [directIds, setDirectIds] = useState<string[]>([]);
   const [indirectIds, setIndirectIds] = useState<string[]>([]);
+  const [stepMap, setStepMap] = useState<Map<string, number>>(new Map());
 
   // 功能3：topN 匹配高亮
   const [topMatches, setTopMatches] = useState<{ id: string; score: number }[]>([]);
@@ -196,6 +197,7 @@ export default function SocialGraph() {
     const sets = engine.getContactSets(selectedId, nearRadius);
     setDirectIds(sets.directIds);
     setIndirectIds(sets.indirectIds);
+    setStepMap(sets.stepMap);
   };
 
   // 功能3：匹配 TopN
@@ -209,6 +211,7 @@ export default function SocialGraph() {
   const clearHighlights = () => {
     setDirectIds([]);
     setIndirectIds([]);
+    setStepMap(new Map());
     setTopMatches([]);
     setHighlightPath([]);
     setPathStart(null);
@@ -450,6 +453,18 @@ export default function SocialGraph() {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(matchRank.toString(), a.position.x, a.position.y);
+        ctx.restore();
+      }
+
+      // 绘制地理位置查询的步数数字
+      const step = stepMap.get(a.id);
+      if (step && !isSelected && !matchRank) {
+        ctx.save();
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = `bold ${Math.max(14 * dpr, 16)}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(step.toString(), a.position.x, a.position.y);
         ctx.restore();
       }
     });
@@ -709,10 +724,100 @@ export default function SocialGraph() {
               >
                 查看附近联络
               </button>
+              
+              {/* 详细分类列表 */}
               {(directIds.length > 0 || indirectIds.length > 0) && (
-                <div className="bg-[#F0FDF4] border border-[#BBF7D0] rounded-lg p-2.5 text-xs">
-                  <div className="text-[#16A34A]">直接好友: {directIds.length} 人</div>
-                  <div className="text-[#4ADE80]">间接好友: {indirectIds.length} 人</div>
+                <div className="mt-3 space-y-2">
+                  <div className="text-[#344054] text-xs font-medium">联络详情（按步数分类）</div>
+                  <div className="max-h-64 overflow-y-auto space-y-2">
+                    {/* 0次中间人（直接好友） */}
+                    {[...directIds].filter(id => stepMap.get(id) === 1).map(id => {
+                      const agent = engineRef.current?.getAgent(id);
+                      if (!agent) return null;
+                      return (
+                        <div
+                          key={id}
+                          className="bg-white border border-[#16A34A] rounded-lg p-2.5 hover:border-[#22C55E] transition-colors cursor-pointer"
+                          onClick={() => {
+                            setSelectedId(id);
+                            setSelectedAgent(agent);
+                          }}
+                        >
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-2">
+                              <span className="bg-[#16A34A] text-white text-[10px] font-bold px-1.5 py-0.5 rounded">0次</span>
+                              <span className="text-[#101828] text-xs font-medium">{agent.name}</span>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-1.5 text-[10px] text-[#475467]">
+                            <div>年龄: {agent.age}岁</div>
+                            <div>性别: {agent.gender === 'Male' ? '男' : '女'}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    
+                    {/* 1次中间人 */}
+                    {[...indirectIds].filter(id => stepMap.get(id) === 2).map(id => {
+                      const agent = engineRef.current?.getAgent(id);
+                      if (!agent) return null;
+                      return (
+                        <div
+                          key={id}
+                          className="bg-white border border-[#86EFAC] rounded-lg p-2.5 hover:border-[#22C55E] transition-colors cursor-pointer"
+                          onClick={() => {
+                            setSelectedId(id);
+                            setSelectedAgent(agent);
+                          }}
+                        >
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-2">
+                              <span className="bg-[#86EFAC] text-white text-[10px] font-bold px-1.5 py-0.5 rounded">1次</span>
+                              <span className="text-[#101828] text-xs font-medium">{agent.name}</span>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-1.5 text-[10px] text-[#475467]">
+                            <div>年龄: {agent.age}岁</div>
+                            <div>性别: {agent.gender === 'Male' ? '男' : '女'}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    
+                    {/* 2次中间人 */}
+                    {[...indirectIds].filter(id => stepMap.get(id) === 3).map(id => {
+                      const agent = engineRef.current?.getAgent(id);
+                      if (!agent) return null;
+                      return (
+                        <div
+                          key={id}
+                          className="bg-white border border-[#BBF7D0] rounded-lg p-2.5 hover:border-[#22C55E] transition-colors cursor-pointer"
+                          onClick={() => {
+                            setSelectedId(id);
+                            setSelectedAgent(agent);
+                          }}
+                        >
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-2">
+                              <span className="bg-[#BBF7D0] text-white text-[10px] font-bold px-1.5 py-0.5 rounded">2次</span>
+                              <span className="text-[#101828] text-xs font-medium">{agent.name}</span>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-1.5 text-[10px] text-[#475467]">
+                            <div>年龄: {agent.age}岁</div>
+                            <div>性别: {agent.gender === 'Male' ? '男' : '女'}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* 汇总 */}
+                  <div className="bg-[#F0FDF4] border border-[#BBF7D0] rounded-lg p-2.5 text-xs space-y-1">
+                    <div className="text-[#16A34A]">0次中间人: {[...directIds].filter(id => stepMap.get(id) === 1).length} 人</div>
+                    <div className="text-[#4ADE80]">1次中间人: {[...indirectIds].filter(id => stepMap.get(id) === 2).length} 人</div>
+                    <div className="text-[#BBF7D0]">2次中间人: {[...indirectIds].filter(id => stepMap.get(id) === 3).length} 人</div>
+                  </div>
                 </div>
               )}
             </div>
