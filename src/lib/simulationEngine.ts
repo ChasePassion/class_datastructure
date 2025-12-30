@@ -32,8 +32,8 @@ export class SimulationEngine {
     // 好感度
     forgetRate: 0.01, // λ：越大遗忘越快（向0回归）
     matchRate: 2, // η：匹配推动强度
-    crowdRate: 0.5, // γ：拥挤惩罚强度
-    personalSpace: 15, // 小于此距离会产生"烦"惩罚
+    crowdRate: 0.6, // γ：拥挤惩罚强度
+    personalSpace: 20, // 小于此距离会产生"烦"惩罚
 
     // 连边阈值（互惠 + 滞回）
     connectOn: 0.3,
@@ -47,10 +47,10 @@ export class SimulationEngine {
     ageScale: 12, // 年龄差衰减尺度
 
     // 运动
-    sepRange: 20, // 排斥作用距离
+    sepRange: 25, // 排斥作用距离
     sepStrength: 500, // 排斥加速度强度（线性推开）
-    friendAttract: 35, // 好友吸引加速度
-    wanderAccel: 28, // 随机游走加速度
+    friendAttract: 30, // 好友吸引加速度
+    wanderAccel: 35, // 随机游走加速度
     drag: 3.0, // 阻尼
     vMax: 120, // 限速（px/s）
     restitution: 0.85, // 边界反弹损耗
